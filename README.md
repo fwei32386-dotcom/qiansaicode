@@ -37,13 +37,3 @@ models/rknn/safelab_fire_smoke_fp.rknn
 04_提交说明/运行说明.md
 说明
 本仓库仅用于竞赛/项目提交材料归档。
-
-注意：README 里不要保留任何这些内容：
-
-```text
-<<<<<<< HEAD
-=======
->>>>>>>
-qiansaicode
-use for qiansai
-e3bc4b807782e3d143c84f38a260f6dd39999ff2
