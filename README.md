@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # SafeLab Vision Pro 完整版提交包
 
 项目名称：基于 RK3588 的多模态实验室安全巡检与智能告警系统
@@ -51,3 +52,7 @@ models/rknn/safelab_fire_smoke_fp.rknn
 ## 说明
 
 `05_附录_交接说明` 只用于队友接手和复现，不是作品主体。评审主要查看源码、技术文档、演示视频、模型和运行说明。
+=======
+# qiansaicode
+use for qiansai
+>>>>>>> e3bc4b807782e3d143c84f38a260f6dd39999ff2
