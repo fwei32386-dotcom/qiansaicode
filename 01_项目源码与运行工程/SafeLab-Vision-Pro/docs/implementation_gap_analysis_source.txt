@@ -1,0 +1,518 @@
+﻿SafeLab-Vision Pro：三人分工、统一接口与实现指导
+基于 RK3588 的实验室视觉风险认知与边缘自治系统
+最强版本｜分工执行版｜Codex 上下文母版
+项目核心边界： 以视觉边缘检测为主；烟雾、火焰、PPE、禁区入侵均通过视觉识别与规则认知完成。 不以烟雾传感器、温湿度、红外热源等外设作为主线；这些仅作为后期可扩展项。 PPT 和答辩材料不计入三人研发分工，本文只定义研发、联调、测试与交付边界。
+版本：V1.0｜生成日期：2026-05-09
+目录
+1. 文档使用方式与总原则
+2. 最强版本总体方案
+3. 系统总体框架与数据流
+4. 硬件外设框架与采购边界
+5. 软件工程目录与运行时架构
+6. 最强版本创新点全集
+7. 三人高效率分工
+8. 统一接口与边界
+9. 具体实现步骤与验收方法
+10. Codex 全员上下文与三人专属命令
+11. 联调顺序、日志规范与测试报告
+12. 完成判定与风险控制
+1. 文档使用方式与总原则
+本文档是 SafeLab-Vision Pro 项目的共同工作契约，用于三名成员并行开发、统一接口、交给各自 Codex 作为上下文背景和任务命令。
+它不是 PPT，也不是答辩稿；它是研发执行文档。三个人每次开启新的 Codex 对话时，应先提供“全员统一上下文”，再提供本人角色章节和当前任务卡。
+1.1 一句话原则
+不要把系统做成普通 YOLO Demo。 目标是做成基于 RK3588 的实验室视觉风险认知与边缘自治平台： 视觉输入 -> 低延迟推理 -> 场景语义理解 -> 风险规则编排 -> 事件状态机 -> 可解释告警 -> 证据链复盘 -> 自动评测。
+1.2 全员硬约束
+先冻结统一接口，再分别开发；任何字段新增、命名变更、含义调整，必须先更新 interface_spec.md。
+三人不能互相等待真实硬件或真实模型；必须用模拟数据、样例视频、假 Detection、假 RiskEvent 先打通闭环。
+所有慢操作异步化：日志、截图、语音、Web 推送不得阻塞主推理链路。
+所有队列默认 maxsize=1 或 latest-only，旧帧直接覆盖，禁止旧帧堆积造成累计延迟。
+PPT 与答辩材料不纳入三人研发分工；三人的交付只按代码、配置、测试、日志、可运行系统验收。
+每个模块必须有输入、输出、样例、验收命令、失败回退方式。
+1.3 当前项目边界
+边界项
+定版结论
+主平台
+ELF 2 / RK3588，重点体现 NPU、CPU、USB、HDMI、GPIO、存储、网络能力。
+主感知方式
+视觉边缘检测为主，USB 摄像头、HDMI 采集卡、本地视频统一输入。
+烟雾/火焰
+通过视觉检测和时序确认完成，不使用烟雾传感器作为主线。
+核心类别
+person、helmet、vest、fire、smoke。
+核心机制
+视觉风险认知引擎、安全规则 DSL、自适应低延迟调度、烟火时序确认、事件时间轴、自动评测、自检降级、比赛模式。
+交付目标
+稳定运行、低延迟、可解释、可复现、可评测、可迁移配置。
+2. 最强版本总体方案
+2.1 项目名称与定位
+项目名称：SafeLab-Vision Pro：基于 RK3588 的实验室视觉风险认知与边缘自治系统。
+副标题：面向实验室安全监管的低延迟视觉风险识别、规则编排与证据链追溯平台。
+定位：本项目不是简单目标检测系统，而是可配置、可复现、可评测、可迁移的边缘视觉安全平台。
+2.2 质变逻辑
+普通方案
+最强版本升级
+YOLO 检测安全帽/烟雾
+视觉风险认知引擎：将 Detection 转化为可解释 RiskEvent。
+if 判断规则写死
+安全规则 DSL：不同实验室可通过 YAML 配置区域规则与动作策略。
+每帧全图推理
+自适应低延迟调度：正常低频、疑似高频、ROI 局部、旧帧丢弃。
+烟雾单帧报警
+烟火时序确认：连续帧、面积变化、恢复、冷却、误报抑制。
+简单日志
+事件时间轴 + 风险曲线 + 证据链：记录风险从出现到闭环全过程。
+手动演示
+比赛模式：一键启动、自检、切换输入源、导出报告。
+口头说低延迟
+自动评测与消融实验：生成 CSV 数据证明优化有效。
+2.3 最终能力闭环
+多源视觉输入 -> latest-only 低延迟运行时 -> RK3588 NPU 推理 -> Detection 标准化输出 -> 视觉风险认知引擎 -> 安全规则 DSL 编排 -> 风险评分 + 事件状态机 -> 告警动作策略 -> 事件时间轴 + 风险曲线 + 证据链 -> 离线回放评测 + 自动消融报告 -> 比赛一键演示与设备自检降级
+3. 系统总体框架与数据流
+3.1 六层系统架构
+层级
+模块
+职责
+1
+多源视觉输入层
+USB 摄像头、HDMI 采集卡、本地视频统一为 VideoFrame。
+2
+低延迟边缘运行时
+latest-only 缓存、FrameScheduler、异步推理、异步事件总线、Profiler。
+3
+RK3588 NPU 视觉推理层
+YOLO-RKNN、INT8 量化、CPU/NPU 对比、Detection 输出。
+4
+视觉风险认知层
+PPE 关联、语义地图、规则 DSL、烟火时序、风险评分、状态机。
+5
+边缘自治处置层
+语音、LED、蜂鸣器、继电器、告警冷却、动作策略。
+6
+证据链与评测层
+截图、日志、事件时间轴、风险曲线、回放评测、消融实验、比赛模式。
+3.2 主数据流
+VideoSource(camera/hdmi/file) -> VideoFrame(frame_id, source_type, timestamp, frame) -> FrameScheduler(select source / decide full-frame or ROI / decide detection frequency) -> RKNNDetector -> Detection[] -> TrackManager(PersonTrack / FireSmokeTrack) -> RuleEngine(DSL rules + semantic map) -> RiskEvent -> EventStateMachine -> AlarmAction -> TimelineLogger + SnapshotManager + SQLite + Dashboard
+3.3 低延迟原则
+采集线程只维护最新帧，旧帧直接覆盖。
+显示线程独立运行，不等待推理结果。
+推理线程只处理当前最新帧或调度器选中的 ROI。
+告警、截图、日志、Web 推送全部走异步事件队列。
+同一事件只在状态变化时执行重动作，避免每帧重复报警。
+普通状态低频全帧检测，疑似风险状态提高相关目标检测频率。
+双路输入时默认双路显示、单路推理，避免 NPU 和内存带宽被压满。
+4. 硬件外设框架与采购边界
+4.1 硬件连接框架
+USB 摄像头 -------------- 手机/电脑 HDMI -> HDMI采集卡 -> RK3588/ELF 2 -> HDMI 屏幕/触摸屏 本地视频文件 --------------/ | |-> USB 小音箱 |-> GPIO LED / 蜂鸣器 / 继电器 |-> TF/eMMC/USB 存储日志与截图 |-> 网口/WiFi Web 看板
+4.2 RK3588 平台能力使用映射
+平台能力
+本项目使用方式
+验收证据
+NPU
+YOLO RKNN 推理、INT8 量化、NPU FPS 统计。
+benchmark_npu.csv、推理耗时截图。
+CPU
+规则 DSL、风险评分、事件状态机、日志、Web 服务。
+CPU 占用、事件处理日志。
+USB
+摄像头、HDMI 采集卡、音箱、U盘。
+输入源切换成功、设备自检通过。
+HDMI
+本地界面显示输出。
+显示器/触摸屏运行截图。
+GPIO
+LED、蜂鸣器、继电器联动。
+告警动作日志、现场动作视频。
+存储
+模型、截图、SQLite、回放素材、CSV 报告。
+data/events 与 reports 输出。
+网络
+Web 看板与日志导出，可离线运行。
+浏览器访问截图、断网本地运行记录。
+4.3 采购清单
+类别
+必买/建议
+具体物件
+核心平台
+必买
+ELF 2 RK3588 8GB+64GB、官方电源、主动散热风扇、128GB TF 卡、TF 读卡器、USB 3.0 U盘。
+视觉输入
+必买
+USB 1080P 自动对焦摄像头、摄像头三脚架、环形补光灯、USB HDMI 采集卡、HDMI 线、USB 扩展坞。
+显示交互
+必买/建议
+HDMI 显示器；建议 7寸或10寸 HDMI 触摸屏。
+告警输出
+必买
+USB 小音箱、有源蜂鸣器、红黄绿 LED 模块、继电器模块、杜邦线、面包板、电阻包。
+演示道具
+必买
+安全帽、反光衣、禁区警示牌、黄色警戒胶带、亚克力展示底座。
+不作为主线
+暂不买
+MQ-2、SHT31、MLX90614、MLX90640。本方案烟雾与火焰通过视觉完成。
+5. 软件工程目录与运行时架构
+5.1 推荐仓库结构
+SafeLab-Vision-Pro/ ├── README.md ├── configs/ │ ├── video_config.yaml │ ├── model_config.yaml │ ├── semantic_map.yaml │ ├── risk_policy.yaml │ ├── alarm_policy.yaml │ ├── rule_dsl.yaml │ └── demo_config.yaml ├── runtime/ │ ├── latest_frame_buffer.py │ ├── frame_scheduler.py │ ├── inference_worker.py │ ├── async_event_bus.py │ ├── pipeline_profiler.py │ ├── health_monitor.py │ ├── fallback_manager.py │ └── watchdog.py ├── video/ │ ├── video_source.py │ ├── camera_source.py │ ├── hdmi_capture_source.py │ └── file_video_source.py ├── ai_engine/ │ ├── rknn_detector.py │ ├── yolo_postprocess.py │ ├── roi_manager.py │ └── labels.txt ├── safety_brain/ │ ├── ppe_association.py │ ├── scene_graph.py │ ├── rule_dsl_parser.py │ ├── rule_engine.py │ ├── smoke_fire_temporal.py │ ├── visual_risk_score.py │ ├── event_state_machine.py │ ├── track_manager.py │ ├── risk_curve.py │ └── explain_alarm.py ├── actuator/ │ ├── alarm_manager.py │ ├── voice_alarm.py │ ├── led_control.py │ ├── buzzer_control.py │ └── relay_control.py ├── evidence/ │ ├── event_logger.py │ ├── snapshot_manager.py │ ├── event_timeline.py │ ├── timeline_logger.py │ └── feedback_collector.py ├── dashboard/ │ ├── web_server.py │ ├── api.py │ ├── templates/ │ └── static/ ├── tools/ │ ├── benchmark_npu.py │ ├── benchmark_pipeline_latency.py │ ├── replay_video_test.py │ ├── ablation_runner.py │ ├── event_evaluator.py │ ├── generate_test_report.py │ └── generate_defense_tables.py ├── demo/ │ ├── competition_mode.py │ ├── run_demo.sh │ ├── reset_demo.py │ └── demo_assets/ ├── reports/ ├── tests/ ├── models/ └── main.py
+5.2 运行时线程模型
+VideoCaptureThread(camera/hdmi/file) -> LatestFrameBuffer DisplayThread -> reads LatestFrameBuffer + ResultCache -> UI InferenceWorker -> FrameScheduler -> RKNNDetector -> DetectionBuffer RiskWorker -> TrackManager -> RuleEngine -> RiskEvent EventWorker -> EventStateMachine -> AlarmQueue / LogQueue / TimelineQueue AlarmWorker -> voice / LED / buzzer / relay LogWorker -> snapshot / SQLite / timeline / CSV HealthWorker -> device probe / fallback / watchdog
+6. 最强版本创新点全集
+序号
+创新点
+说明
+1
+视觉风险认知引擎
+将 Detection 转化为 PersonTrack、FireSmokeTrack、RiskEvent，形成可解释安全事件，而不是只显示检测框。
+2
+RK3588 NPU 低延迟边缘推理
+YOLO 模型 RKNN 部署，INT8 量化，CPU/NPU 对比，证明平台适用度。
+3
+安全语义地图与规则 DSL
+通过 YAML 编排区域规则、PPE 要求、风险分、告警动作，实现可配置、可迁移。
+4
+自适应视觉调度器
+普通状态低频全帧，疑似风险高频检测，ROI 局部推理，latest-only 旧帧丢弃。
+5
+烟雾火焰视觉时序确认
+连续帧确认、面积变化、恢复、告警冷却，解决视觉烟雾误报和重复报警问题。
+6
+事件状态机与告警生命周期
+Normal、Suspicious、Confirmed、Alarmed、Recovered、Closed，重动作只在状态变化时触发。
+7
+事件时间轴与风险曲线
+记录风险从出现、疑似、确认、告警到恢复的完整时间线，并展示风险分随时间演化。
+8
+可解释告警与证据链
+每次报警输出触发目标、区域、缺失 PPE、风险分、动作、截图和状态。
+9
+离线回放评测与消融实验
+对视频测试集自动回放，生成延迟、误报、状态机、调度器等消融报告。
+10
+设备自检、降级运行与一键比赛模式
+启动检测设备状态，异常时降级；比赛模式一键启动、切换输入源、导出报告。
+6.1 正式材料建议主打的 7 个创新点
+面向实验室场景的视觉风险认知引擎。
+基于 RK3588 NPU 的低延迟边缘视觉推理。
+安全语义地图与规则 DSL 编排机制。
+烟雾火焰视觉时序确认与误报抑制机制。
+自适应视觉调度与 latest-only 低延迟流水线。
+事件时间轴、风险曲线与可解释证据链追溯。
+离线回放评测、设备自检与一键竞赛演示机制。
+7. 三人高效率分工
+三人不按 A/B/C 命名，而按研发交付目标分工：第一人负责“看见并高速推理”，第二人负责“理解风险并低延迟决策”，第三人负责“形成终端闭环与可验证交付”。PPT 和答辩材料不纳入本分工。
+7.1 总分工表
+负责人
+一句话职责
+输入
+输出
+不得负责
+边缘 AI 运行时与模型部署负责人
+让 RK3588 稳定看到目标并输出 Detection。
+摄像头/HDMI/本地视频；模型文件；配置。
+VideoFrame、Detection、NPU benchmark、模型部署脚本。
+不写风险规则、不写告警动作、不改 RiskEvent 字段。
+视觉风险认知与低延迟调度负责人
+把 Detection 转成可解释 RiskEvent，并保证低延迟。
+Detection、语义地图、规则 DSL、调度策略。
+PersonTrack、FireSmokeTrack、RiskEvent、状态机、消融报告。
+不接硬件外设、不写 UI、不改视频输入字段。
+边缘终端闭环与验证负责人
+把 RiskEvent 变成告警、证据、看板、自检、比赛模式。
+RiskEvent、AlarmAction、帧图像、配置。
+UI/Web、音频/LED/蜂鸣器/日志/时间轴/评测报告。
+不训练模型、不写规则引擎、不改 Detection 字段。
+7.2 边缘 AI 运行时与模型部署负责人
+核心目标：完成多源视觉输入、YOLO 训练/转换、RK3588 NPU 推理、Detection 标准化输出和推理性能测试。
+任务
+具体实现
+交付文件
+验收标准
+统一视频输入
+封装 camera/hdmi/file 三类 VideoSource。
+video_source.py、video_config.yaml
+三种输入均能输出 VideoFrame。
+YOLO 模型训练
+五类：person、helmet、vest、fire、smoke。
+best.pt、labels.txt、训练日志
+演示样例识别稳定。
+ONNX/RKNN 转换
+导出 ONNX，使用 RKNN 工具转模型并量化。
+safelab_yolo.onnx、safelab_yolo.rknn
+RK3588 端可推理。
+推理 worker
+读取最新帧或 ROI，输出 Detection。
+rknn_detector.py、inference_worker.py
+Detection 字段符合接口。
+性能测试
+CPU/NPU/INT8 对比，记录 FPS 与耗时。
+benchmark_npu.csv
+可生成对比表。
+7.3 视觉风险认知与低延迟调度负责人
+核心目标：实现 PPE 关联、安全语义地图、规则 DSL、烟火时序确认、风险评分、事件状态机、Track 对象和低延迟调度。
+任务
+具体实现
+交付文件
+验收标准
+PPE 关联
+按 person 框头部/躯干区域绑定 helmet/vest。
+ppe_association.py
+多人场景不乱绑定。
+语义地图
+ROI 多边形区域，点在多边形判断。
+scene_graph.py、semantic_map.yaml
+人员进入区域判断准确。
+规则 DSL
+YAML 规则解析为条件、风险、动作。
+rule_dsl_parser.py、rule_engine.py
+修改 YAML 即改变规则。
+烟火时序确认
+连续帧、面积变化、恢复、冷却。
+smoke_fire_temporal.py
+单帧误检不报警。
+风险评分
+PPE、区域、烟火、持续时间综合评分。
+visual_risk_score.py
+输出风险等级与原因。
+事件状态机
+生命周期管理，防重复报警。
+event_state_machine.py
+同一事件不重复生成。
+低延迟调度
+latest-only、普通低频、疑似高频、ROI。
+frame_scheduler.py
+端到端延迟可统计下降。
+消融实验
+状态机、时序确认、调度器对比。
+ablation_runner.py
+输出 CSV 报告。
+7.4 边缘终端闭环与验证负责人
+核心目标：实现本地/网页终端、输入源切换、告警联动、截图日志、事件时间轴、风险曲线、设备自检、比赛模式和自动报告。
+任务
+具体实现
+交付文件
+验收标准
+本地/Web 看板
+显示视频、检测框、风险、日志、指标。
+web_server.py、dashboard.html
+浏览器可访问并展示数据。
+告警联动
+语音、LED、蜂鸣器、继电器按 AlarmAction 执行。
+alarm_manager.py 等
+每类风险动作正确。
+日志证据链
+原图、标注图、SQLite、CSV。
+event_logger.py、snapshot_manager.py
+每个事件可复盘。
+事件时间轴
+记录疑似、确认、告警、恢复、闭环时间。
+event_timeline.py
+页面展示完整生命周期。
+风险曲线
+保存并展示风险分变化。
+risk_curve.py、risk_chart.py
+高危场景曲线可见。
+健康自检
+检测摄像头、HDMI、模型、数据库、GPIO、存储。
+health_monitor.py
+异常能提示并降级。
+比赛模式
+一键启动、自检、切换输入源、清空/导出日志。
+competition_mode.py、run_demo.sh
+现场无需手敲复杂命令。
+评测报告
+回放测试和生成 CSV/图表。
+generate_test_report.py
+reports 目录有完整输出。
+8. 统一接口与边界
+统一接口是三人并行开发的核心。任何人不得直接传递“随便的字典”或临时字段。所有结构必须保留 frame_id、timestamp、source_type，便于延迟统计、截图复盘和错误定位。
+8.1 接口变更流程
+先在 docs/interface_spec.md 增加或修改字段，写清类型、含义、默认值、产生方、消费方。
+给出一条 JSON 样例，并说明旧字段兼容方式。
+通知另外两人确认后，再修改代码。
+接口变更必须同步更新 tests/test_interface_contract.py。
+无版本号、无样例、无测试的接口变更不得进入联调。
+8.2 VideoFrame
+VideoFrame = { "frame_id": 123, "source_type": "camera", # camera | hdmi | file "timestamp": 1710000000.123, "frame": ndarray, # OpenCV BGR frame, 内部传对象，不写入 JSON "width": 1280, "height": 720, "source_name": "usb_cam_0" }
+8.3 Detection
+Detection = { "frame_id": 123, "source_type": "camera", "class_name": "person", # person | helmet | vest | fire | smoke "confidence": 0.91, "bbox": [100, 150, 300, 620], # x1,y1,x2,y2 "center": [200, 385], "area": 94000, "model_name": "safelab_yolo_rknn", "infer_time_ms": 22.8 }
+8.4 PersonTrack
+PersonTrack = { "track_id": 1, "frame_id": 123, "bbox": [100, 150, 300, 620], "zone_id": "danger_zone", "has_helmet": false, "has_vest": true, "ppe_status": "helmet_missing", "risk_state": "suspicious", "hit_count": 3, "miss_count": 0, "last_update_ts": 1710000000.233 }
+8.5 FireSmokeTrack
+FireSmokeTrack = { "track_id": 10, "frame_id": 223, "class_name": "smoke", "bbox": [400, 120, 700, 360], "confidence": 0.76, "appear_count": 4, "area_history": [3200, 3600, 4200], "state": "confirmed", "risk_level": "high" }
+8.6 RiskEvent
+RiskEvent = { "event_id": "E20260509_0001", "frame_id": 123, "source_type": "camera", "event_type": "ppe_violation", # ppe_violation | forbidden_intrusion | smoke | fire "risk_score": 72, "risk_level": "high", # normal | notice | warning | high | emergency "reasons": [ "人员进入危险设备区", "未检测到安全帽", "持续时间超过3秒" ], "bbox": [100, 150, 300, 620], "need_alarm": true, "need_snapshot": true, "need_log": true, "timestamp": 1710000000.333 }
+8.7 AlarmAction
+AlarmAction = { "event_id": "E20260509_0001", "voice_text": "检测到人员未佩戴安全帽，请立即整改。", "led_color": "red", "buzzer": true, "relay": false, "snapshot": true, "log": true, "cooldown_ms": 20000 }
+8.8 TimelineEvent 与 HealthStatus
+TimelineEvent = { "event_id": "E20260509_0001", "stage": "confirmed", # suspicious | confirmed | alarmed | recovered | closed "timestamp": 1710000000.520, "detail": "连续3帧未检测到安全帽，确认 PPE 违规" } HealthStatus = { "camera": "ok", "hdmi_capture": "ok", "rknn_model": "ok", "database": "ok", "gpio": "ok", "audio": "ok", "storage_free_mb": 51200, "fallback_mode": "none" }
+9. 具体实现步骤与验收方法
+阶段
+名称
+实现内容
+验收标准
+0
+接口冻结与模拟数据
+创建 interface_spec.md、样例 JSON、mock Detection/RiskEvent。
+三人可在无真实模型/硬件条件下独立开发。
+1
+统一视频输入
+实现 camera/hdmi/file VideoSource，统一输出 VideoFrame。
+三种输入源可切换，frame_id 单调递增。
+2
+NPU 推理最小闭环
+YOLO -> ONNX -> RKNN，输出 Detection。
+RK3588 上成功检测 person，输出 FPS。
+3
+风险认知最小闭环
+用 Detection 完成 PPE、语义地图、RiskEvent。
+模拟/真实 Detection 均可触发风险事件。
+4
+告警与日志闭环
+RiskEvent -> AlarmAction -> UI/语音/LED/日志。
+事件有截图、有日志、有触发原因。
+5
+最强机制接入
+规则 DSL、烟火时序、状态机、风险曲线、事件时间轴。
+单帧误检不报警，同一事件不重复报警。
+6
+低延迟与自动评测
+调度器、latest-only、消融实验、回放评测。
+reports 下有 CSV 数据，证明优化效果。
+7
+设备自检与比赛模式
+健康监测、降级、一键演示、导出报告。
+现场可一键启动并保底演示。
+9.1 规则 DSL 示例
+rules: - id: R001 name: 未戴安全帽进入危险设备区 when: object: person zone: danger_zone missing_ppe: helmet duration_ms: 1500 risk: score: 70 level: high actions: voice: "检测到人员未佩戴安全帽进入危险区域，请立即整改" led: red buzzer: false snapshot: true log: true - id: R002 name: 烟雾持续出现 when: object: smoke appear_frames: 3 window_frames: 5 area_growth: true risk: score: 85 level: emergency actions: voice: "检测到烟雾风险，请及时检查现场" led: red buzzer: true snapshot: true log: true
+9.2 延迟优化实现清单
+优化点
+实现模块
+验收方式
+latest-only 缓存
+latest_frame_buffer.py
+高负载下显示不滞后，旧帧不排队。
+队列 maxsize=1
+async_event_bus.py
+推理/日志忙时不会堆积大量旧任务。
+显示不等推理
+dashboard 或 UI 主线程
+推理慢时画面仍流畅。
+异步日志截图
+event_logger.py、snapshot_manager.py
+保存图片不阻塞下一帧推理。
+自适应调度
+frame_scheduler.py
+普通低频、疑似高频、ROI 局部策略可生效。
+状态机防重复
+event_state_machine.py
+同一风险只触发一次主告警。
+9.3 自动评测输出
+文件
+内容
+责任人
+reports/npu_benchmark.csv
+CPU/NPU/INT8 推理耗时、FPS。
+边缘 AI 运行时与模型部署负责人
+reports/pipeline_latency.csv
+采集、预处理、推理、后处理、规则、告警各阶段延迟。
+视觉风险认知与低延迟调度负责人
+reports/smoke_temporal_ablation.csv
+单帧烟雾报警 vs 时序确认误报/重复报警对比。
+视觉风险认知与低延迟调度负责人
+reports/state_machine_ablation.csv
+无状态机 vs 有状态机重复报警与日志重复对比。
+视觉风险认知与低延迟调度负责人
+reports/replay_event_report.csv
+离线视频回放的事件命中、误报、漏报、平均确认时间。
+边缘终端闭环与验证负责人
+reports/health_check.json
+设备自检状态和降级记录。
+边缘终端闭环与验证负责人
+10. Codex 全员上下文与三人专属命令
+10.1 全员统一上下文模板
+你是 SafeLab-Vision Pro 项目的 Codex 助手。 项目目标：基于 RK3588 / ELF 2 做实验室视觉风险认知与边缘自治系统。 主线：视觉输入 -> RKNN 推理 -> Detection -> 风险认知引擎 -> RiskEvent -> 告警与证据链。 硬约束： 1. 烟雾/火焰通过视觉检测完成，不使用烟雾传感器作为主线。 2. 接口必须遵守 interface_spec.md，字段变更先改文档和样例。 3. 低延迟优先：latest-only、队列 maxsize=1、显示不等推理、日志异步。 4. 告警必须可解释：每个 RiskEvent 必须包含 reasons、risk_score、risk_level。 5. 同一事件必须由事件状态机管理，禁止每帧重复报警、重复截图、重复写日志。 6. 每个任务必须给出修改文件、运行命令、测试命令、验收结果和回滚方法。
+10.2 负责人 1：边缘 AI 运行时与模型部署 Codex 命令
+你是“边缘 AI 运行时与模型部署负责人”的 Codex 助手。 当前任务：【填写任务名】。 你只负责 video/、ai_engine/、runtime/inference_worker.py、tools/benchmark_npu.py、models/ 相关内容。 禁止修改 safety_brain 的风险规则，禁止修改 RiskEvent 字段，禁止实现 UI/告警动作。 输入：视频源配置、模型路径、RKNN runtime 环境。 输出：VideoFrame、Detection、benchmark_npu.csv。 要求： 1. 支持 camera/hdmi/file 三种输入源。 2. 输出 Detection 必须符合 interface_spec.md。 3. 推理脚本必须打印 frame_id、source_type、infer_time_ms、FPS。 4. 提供 smoke test 与失败提示。 请先列出将修改的文件，再给出实现计划。
+10.3 负责人 2：视觉风险认知与低延迟调度 Codex 命令
+你是“视觉风险认知与低延迟调度负责人”的 Codex 助手。 当前任务：【填写任务名】。 你只负责 safety_brain/、runtime/frame_scheduler.py、tools/ablation_runner.py 相关内容。 禁止接硬件外设、禁止写 UI、禁止修改 Detection 字段。 输入：Detection[]、semantic_map.yaml、rule_dsl.yaml、risk_policy.yaml。 输出：PersonTrack、FireSmokeTrack、RiskEvent、TimelineEvent。 要求： 1. PPE 关联、语义地图、规则 DSL、烟火时序、风险评分、事件状态机均可独立单元测试。 2. RiskEvent 必须包含 reasons，不能黑盒报警。 3. 单帧烟雾/火焰误检不能直接触发 emergency。 4. 同一事件在告警冷却期内不重复生成主告警。 请先写测试样例，再实现模块。
+10.4 负责人 3：边缘终端闭环与验证 Codex 命令
+你是“边缘终端闭环与验证负责人”的 Codex 助手。 当前任务：【填写任务名】。 你只负责 dashboard/、actuator/、evidence/、runtime/health_monitor.py、demo/、tools/replay_video_test.py 等内容。 禁止训练模型，禁止修改 Detection/RiskEvent 字段，禁止写风险规则核心逻辑。 输入：RiskEvent、AlarmAction、VideoFrame、配置文件。 输出：UI/Web 看板、语音/LED/蜂鸣器/继电器动作、截图、SQLite、事件时间轴、评测 CSV、比赛模式。 要求： 1. 所有告警动作异步执行。 2. 截图和 SQLite 写入不得阻塞主推理链路。 3. 设备自检失败时必须给出降级策略。 4. 一键演示脚本必须能启动系统、清空/导出演示数据。 请先列出数据表结构和运行命令，再实现。
+10.5 单任务卡模板
+任务名称：【模块名】 负责角色：【三人角色之一】 目标： 输入接口： 输出接口： 允许修改文件： 禁止修改文件： 配置文件： 实现要求： 测试要求： 验收命令： 预期输出： 失败回滚方法： 当前问题与依赖：
+11. 联调顺序、日志规范与测试报告
+11.1 并行开发顺序
+时间段
+负责人 1
+负责人 2
+负责人 3
+共同验收
+0-24h
+完成 VideoFrame/Detection 样例与本地视频读取。
+用假 Detection 打通 RiskEvent。
+用假 RiskEvent 打通告警/日志。
+无真实模型也能完成检测->风险->告警->日志闭环。
+24-72h
+接摄像头、初版 YOLO/RKNN 推理。
+PPE、语义地图、状态机单测。
+UI 显示视频、日志页面、截图保存。
+摄像头模式可演示 PPE 与禁区。
+第 4-7 天
+接 HDMI 采集卡，烟火视频推理。
+烟火时序确认、规则 DSL、风险评分。
+告警动作、事件时间轴、风险曲线。
+摄像头+HDMI 两类场景闭环。
+第 8-12 天
+模型优化、NPU benchmark。
+低延迟调度、消融实验。
+健康自检、比赛模式、回放评测。
+可生成 reports 全套 CSV。
+冲刺期
+补数据、补模型鲁棒性。
+调阈值和状态机参数。
+现场一键演示与保底方案。
+稳定连续运行并导出证据。
+11.2 日志目录规范
+data/ ├── events/ │ ├── raw/ # 原始截图 │ ├── marked/ # 带检测框与告警信息截图 │ ├── timelines/ # 每个事件时间轴 JSON │ └── alarm_log.db # SQLite ├── replay/ │ ├── input_videos/ │ └── results/ reports/ ├── npu_benchmark.csv ├── pipeline_latency.csv ├── smoke_temporal_ablation.csv ├── state_machine_ablation.csv ├── replay_event_report.csv ├── health_check.json └── demo_export.zip
+11.3 每日同步格式
+日期： 负责人： 今日修改文件： 今日运行命令： 输出日志/截图/CSV路径： 接口是否变化：是/否；若是，附 interface_spec.md 修改内容。 当前可运行功能： 失败问题： 明天依赖谁： 需要 Codex 继续处理的任务卡：
+12. 完成判定与风险控制
+12.1 最小可交付版本
+摄像头实时识别 person/helmet/vest。
+HDMI 或本地视频识别 smoke/fire。
+PPE 关联与危险区/禁区判断生效。
+烟火时序确认生效，单帧误检不直接报警。
+RiskEvent 能输出风险分、风险等级、触发原因。
+语音、LED、蜂鸣器、截图、SQLite 日志闭环。
+Web 或本地界面可查看历史事件与截图。
+CPU/NPU benchmark 与基础延迟报告可生成。
+12.2 国赛竞争增强完成标准
+安全规则 DSL 可配置并通过测试。
+自适应调度、latest-only 和异步日志有对比数据。
+事件时间轴与风险曲线可展示。
+离线回放评测可生成 replay_event_report.csv。
+消融实验可证明时序确认、状态机、调度器有效。
+设备自检与降级策略可演示。
+比赛模式一键启动，可清空、切换、导出本次演示数据。
+12.3 风险控制
+风险
+表现
+控制策略
+模型不稳
+烟雾、反光衣或安全帽误检。
+准备本地视频保底；补充演示环境数据；阈值和时序确认调优。
+延迟高
+画面卡顿或告警滞后。
+启用 latest-only、单路推理、异步日志；降低输入分辨率。
+接口乱
+三人代码接不上。
+冻结 interface_spec.md，所有字段变更先写文档和样例。
+外设失效
+音箱、LED、蜂鸣器异常。
+健康自检和降级策略：至少屏幕告警与日志必须可用。
+现场烟火演示不稳定
+手机屏幕反光、HDMI异常。
+准备本地视频文件模式与预置日志保底。
+功能过多做不完
+半成品模块拖垮主线。
+先完成最小闭环，再接规则 DSL、回放评测和比赛模式。
+12.4 最终提醒
+先做稳定主线，再做最强创新。 一个稳定的“视觉输入 -> NPU推理 -> 风险认知 -> 告警证据链 -> 自动评测”闭环， 比十个半成品功能更适合瑞芯微赛道国赛展示。 三个人不是三个自由开发者，而是三个严格按同一 interface_spec.md 执行的模块负责人。

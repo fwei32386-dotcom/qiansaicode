@@ -1,0 +1,15 @@
+{
+  "enabled": false,
+  "voltage": "3.3V",
+  "notes": "Confirm ELF 2 40-pin/20-pin mapping before enabling real writes.",
+  "pins": {
+    "led_red": null,
+    "led_yellow": null,
+    "led_green": null,
+    "buzzer": null,
+    "relay": null,
+    "button_mute": null,
+    "button_reset": null,
+    "button_snapshot": null
+  }
+}

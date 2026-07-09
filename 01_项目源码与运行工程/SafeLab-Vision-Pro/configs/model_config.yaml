@@ -1,0 +1,13 @@
+model:
+  name: safelab_yolov8n_rknn
+  labels:
+    - person
+    - helmet
+    - vest
+    - goggles
+    - gloves
+    - fire
+    - smoke
+  runtime:
+    backend: mock
+    target: rk3588

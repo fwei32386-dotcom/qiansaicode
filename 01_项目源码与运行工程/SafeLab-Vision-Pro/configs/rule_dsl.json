@@ -1,0 +1,104 @@
+{
+  "rules": [
+    {
+      "id": "R001",
+      "name": "helmet missing in danger zone",
+      "priority": 100,
+      "event_type": "ppe_violation",
+      "object": "person",
+      "zone": "danger_zone",
+      "missing_ppe": ["helmet"],
+      "risk": {
+        "score": 82,
+        "level": "high"
+      },
+      "actions": {
+        "voice": "Helmet missing in danger zone. Please correct immediately.",
+        "led": "red",
+        "buzzer": true,
+        "snapshot": true,
+        "log": true
+      }
+    },
+    {
+      "id": "R002",
+      "name": "vest missing in danger zone",
+      "priority": 80,
+      "event_type": "ppe_violation",
+      "object": "person",
+      "zone": "danger_zone",
+      "missing_ppe": ["vest"],
+      "risk": {
+        "score": 65,
+        "level": "warning"
+      },
+      "actions": {
+        "voice": "Reflective vest missing in danger zone.",
+        "led": "yellow",
+        "buzzer": false,
+        "snapshot": true,
+        "log": true
+      }
+    },
+    {
+      "id": "R003",
+      "name": "person intrusion in danger zone",
+      "priority": 10,
+      "event_type": "forbidden_intrusion",
+      "object": "person",
+      "zone": "danger_zone",
+      "missing_ppe": [],
+      "risk": {
+        "score": 45,
+        "level": "notice"
+      },
+      "actions": {
+        "voice": "Person entered danger zone.",
+        "led": "yellow",
+        "buzzer": false,
+        "snapshot": true,
+        "log": true
+      }
+    },
+    {
+      "id": "R004",
+      "name": "goggles missing in welding zone",
+      "priority": 90,
+      "event_type": "ppe_violation",
+      "object": "person",
+      "zone": "welding_zone",
+      "missing_ppe": ["goggles"],
+      "risk": {
+        "score": 78,
+        "level": "high"
+      },
+      "actions": {
+        "voice": "Goggles missing in welding zone. Please wear eye protection.",
+        "led": "red",
+        "buzzer": true,
+        "snapshot": true,
+        "log": true
+      }
+    },
+    {
+      "id": "R005",
+      "name": "gloves missing in operation zone",
+      "priority": 70,
+      "event_type": "ppe_violation",
+      "object": "person",
+      "zone": "operation_zone",
+      "missing_ppe": ["gloves"],
+      "risk": {
+        "score": 62,
+        "level": "warning"
+      },
+      "actions": {
+        "voice": "Gloves missing in operation zone.",
+        "led": "yellow",
+        "buzzer": false,
+        "snapshot": true,
+        "log": true
+      }
+    }
+  ]
+}

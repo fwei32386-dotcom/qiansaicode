@@ -1,0 +1,81 @@
+{
+  "cases": [
+    {
+      "id": "case_001_danger_zone_ppe",
+      "type": "single",
+      "input": "data/mock_scenarios/danger_zone_ppe.json",
+      "engine": "dsl",
+      "expected": {
+        "events": 1,
+        "actions": 1,
+        "max_risk_level": "high"
+      }
+    },
+    {
+      "id": "case_002_normal_zone_no_ppe",
+      "type": "single",
+      "input": "data/mock_scenarios/normal_zone_no_ppe.json",
+      "engine": "dsl",
+      "expected": {
+        "events": 0,
+        "actions": 0,
+        "max_risk_level": "normal"
+      }
+    },
+    {
+      "id": "case_003_fire",
+      "type": "single",
+      "input": "data/mock_scenarios/fire_risk.json",
+      "engine": "simple",
+      "expected": {
+        "events": 1,
+        "actions": 1,
+        "max_risk_level": "emergency"
+      }
+    },
+    {
+      "id": "case_004_timeline_smoke",
+      "type": "timeline",
+      "input": "data/mock_scenarios/timeline_smoke.json",
+      "expected": {
+        "events": 1,
+        "actions": 1,
+        "timeline_stages": 3,
+        "duplicate_alarm_count": 0
+      }
+    },
+    {
+      "id": "case_005_welding_zone_goggles",
+      "type": "single",
+      "input": "data/mock_scenarios/welding_zone_missing_goggles.json",
+      "engine": "dsl",
+      "expected": {
+        "events": 1,
+        "actions": 1,
+        "max_risk_level": "high"
+      }
+    },
+    {
+      "id": "case_006_operation_zone_gloves",
+      "type": "single",
+      "input": "data/mock_scenarios/operation_zone_missing_gloves.json",
+      "engine": "dsl",
+      "expected": {
+        "events": 1,
+        "actions": 1,
+        "max_risk_level": "warning"
+      }
+    },
+    {
+      "id": "case_007_timeline_ppe_missing_goggles",
+      "type": "timeline",
+      "input": "data/mock_scenarios/timeline_ppe_missing_goggles.json",
+      "expected": {
+        "events": 1,
+        "actions": 1,
+        "timeline_stages": 3,
+        "duplicate_alarm_count": 0
+      }
+    }
+  ]
+}

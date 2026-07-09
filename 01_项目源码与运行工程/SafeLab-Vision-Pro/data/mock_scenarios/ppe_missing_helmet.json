@@ -1,0 +1,28 @@
+{
+  "name": "ppe_missing_helmet",
+  "detections": [
+    {
+      "frame_id": 101,
+      "source_type": "file",
+      "class_name": "person",
+      "confidence": 0.94,
+      "bbox": [100, 120, 360, 680],
+      "center": [230, 400],
+      "area": 145600,
+      "model_name": "json_mock_detector",
+      "infer_time_ms": 0.1
+    },
+    {
+      "frame_id": 101,
+      "source_type": "file",
+      "class_name": "vest",
+      "confidence": 0.88,
+      "bbox": [140, 330, 330, 610],
+      "center": [235, 470],
+      "area": 53200,
+      "model_name": "json_mock_detector",
+      "infer_time_ms": 0.1
+    }
+  ]
+}
+

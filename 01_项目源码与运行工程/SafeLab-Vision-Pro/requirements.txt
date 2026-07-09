@@ -1,0 +1,7 @@
+numpy>=1.24
+opencv-python>=4.8
+Pillow>=10.0
+paramiko>=3.4
+PyYAML>=6.0
+requests>=2.31
+ultralytics>=8.0

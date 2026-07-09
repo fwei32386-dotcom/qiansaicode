@@ -1,0 +1,49 @@
+{
+  "name": "welding_zone_missing_goggles",
+  "detections": [
+    {
+      "frame_id": 401,
+      "source_type": "file",
+      "class_name": "person",
+      "confidence": 0.95,
+      "bbox": [940, 140, 1160, 690],
+      "center": [1050, 415],
+      "area": 121000,
+      "model_name": "json_mock_detector",
+      "infer_time_ms": 0.1
+    },
+    {
+      "frame_id": 401,
+      "source_type": "file",
+      "class_name": "helmet",
+      "confidence": 0.87,
+      "bbox": [990, 145, 1090, 245],
+      "center": [1040, 195],
+      "area": 10000,
+      "model_name": "json_mock_detector",
+      "infer_time_ms": 0.1
+    },
+    {
+      "frame_id": 401,
+      "source_type": "file",
+      "class_name": "vest",
+      "confidence": 0.89,
+      "bbox": [980, 330, 1125, 590],
+      "center": [1052, 460],
+      "area": 37700,
+      "model_name": "json_mock_detector",
+      "infer_time_ms": 0.1
+    },
+    {
+      "frame_id": 401,
+      "source_type": "file",
+      "class_name": "gloves",
+      "confidence": 0.81,
+      "bbox": [1115, 435, 1190, 525],
+      "center": [1152, 480],
+      "area": 6750,
+      "model_name": "json_mock_detector",
+      "infer_time_ms": 0.1
+    }
+  ]
+}

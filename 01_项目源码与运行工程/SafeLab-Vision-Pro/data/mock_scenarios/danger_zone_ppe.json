@@ -1,0 +1,28 @@
+{
+  "name": "danger_zone_ppe",
+  "detections": [
+    {
+      "frame_id": 301,
+      "source_type": "file",
+      "class_name": "person",
+      "confidence": 0.96,
+      "bbox": [120, 130, 360, 690],
+      "center": [240, 410],
+      "area": 134400,
+      "model_name": "json_mock_detector",
+      "infer_time_ms": 0.1
+    },
+    {
+      "frame_id": 301,
+      "source_type": "file",
+      "class_name": "vest",
+      "confidence": 0.88,
+      "bbox": [160, 350, 330, 620],
+      "center": [245, 485],
+      "area": 45900,
+      "model_name": "json_mock_detector",
+      "infer_time_ms": 0.1
+    }
+  ]
+}
+

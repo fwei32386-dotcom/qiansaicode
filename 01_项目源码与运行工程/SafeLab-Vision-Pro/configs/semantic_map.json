@@ -1,0 +1,28 @@
+{
+  "zones": [
+    {
+      "zone_id": "danger_zone",
+      "name": "danger equipment zone",
+      "risk_weight": 25,
+      "polygon": [[80, 80], [420, 80], [420, 720], [80, 720]]
+    },
+    {
+      "zone_id": "normal_zone",
+      "name": "normal walkway",
+      "risk_weight": 0,
+      "polygon": [[421, 80], [900, 80], [900, 720], [421, 720]]
+    },
+    {
+      "zone_id": "welding_zone",
+      "name": "welding operation zone",
+      "risk_weight": 30,
+      "polygon": [[901, 80], [1220, 80], [1220, 720], [901, 720]]
+    },
+    {
+      "zone_id": "operation_zone",
+      "name": "chemical operation zone",
+      "risk_weight": 20,
+      "polygon": [[80, 721], [1220, 721], [1220, 1040], [80, 1040]]
+    }
+  ]
+}

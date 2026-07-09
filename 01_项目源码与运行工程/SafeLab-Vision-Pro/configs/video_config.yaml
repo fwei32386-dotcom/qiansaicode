@@ -1,0 +1,21 @@
+video_sources:
+  default: camera_ov13855
+  camera_ov13855:
+    source_type: camera
+    device: /dev/video-camera0
+    fallback_devices:
+      - /dev/video11
+      - /dev/video0
+      - /dev/video20
+    source_name: ov13855_video11
+    width: 4224
+    height: 3136
+    fps: 30
+  file_demo:
+    source_type: file
+    path: video/demo.mp4
+    source_name: local_demo_video
+  board_file_demo:
+    source_type: board_file
+    board_path: /root/safelab_media/current_demo.mp4
+    source_name: rk_local_video

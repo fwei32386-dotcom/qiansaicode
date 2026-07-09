@@ -1,0 +1,20 @@
+risk_policy:
+  ppe_violation:
+    helmet_missing:
+      score: 72
+      level: high
+    vest_missing:
+      score: 55
+      level: warning
+    goggles_missing:
+      score: 78
+      level: high
+    gloves_missing:
+      score: 62
+      level: warning
+  smoke:
+    score: 80
+    level: high
+  fire:
+    score: 90
+    level: emergency

@@ -1,0 +1,49 @@
+{
+  "name": "operation_zone_missing_gloves",
+  "detections": [
+    {
+      "frame_id": 501,
+      "source_type": "file",
+      "class_name": "person",
+      "confidence": 0.94,
+      "bbox": [520, 740, 760, 1020],
+      "center": [640, 880],
+      "area": 67200,
+      "model_name": "json_mock_detector",
+      "infer_time_ms": 0.1
+    },
+    {
+      "frame_id": 501,
+      "source_type": "file",
+      "class_name": "helmet",
+      "confidence": 0.86,
+      "bbox": [585, 745, 695, 815],
+      "center": [640, 780],
+      "area": 7700,
+      "model_name": "json_mock_detector",
+      "infer_time_ms": 0.1
+    },
+    {
+      "frame_id": 501,
+      "source_type": "file",
+      "class_name": "vest",
+      "confidence": 0.9,
+      "bbox": [570, 835, 720, 965],
+      "center": [645, 900],
+      "area": 19500,
+      "model_name": "json_mock_detector",
+      "infer_time_ms": 0.1
+    },
+    {
+      "frame_id": 501,
+      "source_type": "file",
+      "class_name": "goggles",
+      "confidence": 0.82,
+      "bbox": [595, 775, 690, 820],
+      "center": [642, 797],
+      "area": 4275,
+      "model_name": "json_mock_detector",
+      "infer_time_ms": 0.1
+    }
+  ]
+}

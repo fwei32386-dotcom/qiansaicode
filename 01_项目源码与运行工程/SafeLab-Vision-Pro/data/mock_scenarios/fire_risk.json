@@ -1,0 +1,17 @@
+{
+  "name": "fire_risk",
+  "detections": [
+    {
+      "frame_id": 102,
+      "source_type": "file",
+      "class_name": "fire",
+      "confidence": 0.86,
+      "bbox": [440, 160, 720, 520],
+      "center": [580, 340],
+      "area": 100800,
+      "model_name": "json_mock_detector",
+      "infer_time_ms": 0.1
+    }
+  ]
+}
+

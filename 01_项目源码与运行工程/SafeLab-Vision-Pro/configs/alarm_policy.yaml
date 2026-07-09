@@ -1,0 +1,17 @@
+alarm_policy:
+  high:
+    led_color: red
+    buzzer: true
+    relay: false
+    cooldown_ms: 20000
+  warning:
+    led_color: yellow
+    buzzer: false
+    relay: false
+    cooldown_ms: 20000
+  emergency:
+    led_color: red
+    buzzer: true
+    relay: false
+    cooldown_ms: 20000
+

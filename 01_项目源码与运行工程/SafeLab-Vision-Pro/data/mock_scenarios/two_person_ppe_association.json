@@ -1,0 +1,38 @@
+{
+  "name": "two_person_ppe_association",
+  "detections": [
+    {
+      "frame_id": 601,
+      "source_type": "file",
+      "class_name": "person",
+      "confidence": 0.96,
+      "bbox": [120, 130, 340, 690],
+      "center": [230, 410],
+      "area": 123200,
+      "model_name": "json_mock_detector",
+      "infer_time_ms": 0.1
+    },
+    {
+      "frame_id": 601,
+      "source_type": "file",
+      "class_name": "person",
+      "confidence": 0.95,
+      "bbox": [940, 140, 1160, 690],
+      "center": [1050, 415],
+      "area": 121000,
+      "model_name": "json_mock_detector",
+      "infer_time_ms": 0.1
+    },
+    {
+      "frame_id": 601,
+      "source_type": "file",
+      "class_name": "helmet",
+      "confidence": 0.88,
+      "bbox": [990, 145, 1090, 245],
+      "center": [1040, 195],
+      "area": 10000,
+      "model_name": "json_mock_detector",
+      "infer_time_ms": 0.1
+    }
+  ]
+}

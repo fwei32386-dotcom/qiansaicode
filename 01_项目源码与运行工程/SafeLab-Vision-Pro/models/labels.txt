@@ -1,0 +1,7 @@
+person
+helmet
+vest
+goggles
+gloves
+fire
+smoke

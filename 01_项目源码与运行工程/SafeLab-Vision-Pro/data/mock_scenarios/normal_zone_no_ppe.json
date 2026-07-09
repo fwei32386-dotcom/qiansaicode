@@ -1,0 +1,17 @@
+{
+  "name": "normal_zone_no_ppe",
+  "detections": [
+    {
+      "frame_id": 302,
+      "source_type": "file",
+      "class_name": "person",
+      "confidence": 0.94,
+      "bbox": [520, 130, 760, 690],
+      "center": [640, 410],
+      "area": 134400,
+      "model_name": "json_mock_detector",
+      "infer_time_ms": 0.1
+    }
+  ]
+}
+

@@ -1,0 +1,9 @@
+{
+  "enabled": true,
+  "base_url": "https://api.deepseek.com",
+  "model": "deepseek-chat",
+  "timeout_s": 8,
+  "max_tokens": 240,
+  "temperature": 0.2,
+  "api_key": ""
+}

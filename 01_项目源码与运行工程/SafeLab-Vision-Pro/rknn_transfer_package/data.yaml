@@ -1,0 +1,13 @@
+path: D:/ELFrk3588/SafeLab-Vision-Pro/datasets/safelab
+train: images/train
+val: images/val
+test: images/test
+
+names:
+  0: person
+  1: helmet
+  2: vest
+  3: goggles
+  4: gloves
+  5: fire
+  6: smoke

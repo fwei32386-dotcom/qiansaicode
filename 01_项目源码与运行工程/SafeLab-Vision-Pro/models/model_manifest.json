@@ -1,0 +1,29 @@
+{
+  "project": "SafeLab-Vision Pro",
+  "classes": [
+    "person",
+    "helmet",
+    "vest",
+    "goggles",
+    "gloves",
+    "fire",
+    "smoke"
+  ],
+  "training_target": {
+    "framework": "Ultralytics YOLO",
+    "recommended_start_model": "yolov8n.pt",
+    "image_size": 640,
+    "initial_epochs": 50,
+    "baseline_name": "safelab_yolov8n",
+    "fallback_models": []
+  },
+  "export_targets": [
+    "onnx",
+    "rknn"
+  ],
+  "notes": [
+    "Train on Windows or a GPU workstation.",
+    "Convert ONNX to RKNN on Ubuntu x86_64 with RKNN-Toolkit2.",
+    "Deploy RKNN to RK3588 for inference only."
+  ]
+}

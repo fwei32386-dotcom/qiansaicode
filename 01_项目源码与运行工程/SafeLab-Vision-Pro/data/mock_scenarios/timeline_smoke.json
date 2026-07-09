@@ -1,0 +1,84 @@
+{
+  "name": "timeline_smoke",
+  "frames": [
+    {
+      "frame_id": 201,
+      "timestamp": 0.0,
+      "detections": [
+        {
+          "frame_id": 201,
+          "source_type": "file",
+          "class_name": "smoke",
+          "confidence": 0.74,
+          "bbox": [420, 100, 650, 320],
+          "center": [535, 210],
+          "area": 50600,
+          "model_name": "timeline_mock_detector",
+          "infer_time_ms": 0.1
+        }
+      ]
+    },
+    {
+      "frame_id": 202,
+      "timestamp": 0.5,
+      "detections": [
+        {
+          "frame_id": 202,
+          "source_type": "file",
+          "class_name": "smoke",
+          "confidence": 0.78,
+          "bbox": [418, 98, 690, 350],
+          "center": [554, 224],
+          "area": 68544,
+          "model_name": "timeline_mock_detector",
+          "infer_time_ms": 0.1
+        }
+      ]
+    },
+    {
+      "frame_id": 203,
+      "timestamp": 1.0,
+      "detections": [
+        {
+          "frame_id": 203,
+          "source_type": "file",
+          "class_name": "smoke",
+          "confidence": 0.83,
+          "bbox": [410, 92, 735, 385],
+          "center": [572, 238],
+          "area": 95225,
+          "model_name": "timeline_mock_detector",
+          "infer_time_ms": 0.1
+        }
+      ]
+    },
+    {
+      "frame_id": 204,
+      "timestamp": 1.5,
+      "detections": [
+        {
+          "frame_id": 204,
+          "source_type": "file",
+          "class_name": "smoke",
+          "confidence": 0.80,
+          "bbox": [408, 92, 730, 380],
+          "center": [569, 236],
+          "area": 92736,
+          "model_name": "timeline_mock_detector",
+          "infer_time_ms": 0.1
+        }
+      ]
+    },
+    {
+      "frame_id": 205,
+      "timestamp": 2.0,
+      "detections": []
+    },
+    {
+      "frame_id": 206,
+      "timestamp": 2.5,
+      "detections": []
+    }
+  ]
+}
+
